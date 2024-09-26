@@ -101,15 +101,14 @@ function addRequest() {
     requestsContainer.appendChild(requestContainer);
 }
 
-
 // Remover uma requisição principal
 function removeRequest(button) {
     const requestContainer = button.closest('.request-container');
     requestContainer.remove();
 }
 
-// Função para gerar o código Python e Robot
-function generateCode() {
+// Função para gerar o código Python
+function generatePythonCode() {
     const tokenUrl = document.getElementById('tokenUrl').value;
     const tokenHeaders = Array.from(document.querySelectorAll('#tokenHeadersContainer .header-field')).map(field => ({
         key: field.querySelector('input[name="tokenHeaderKey"]').value,
@@ -122,8 +121,7 @@ function generateCode() {
 
     // Resetar código gerado
     let pythonCode = `import requests\n\n`;
-    let robotCode = "*** Settings ***\nLibrary    RequestsLibrary\n\n*** Test Cases ***\nValidar Status Code das Requisições\n";
-
+    
     // Função para obter o token em Python
     pythonCode += `def obter_token():\n`;
     pythonCode += `    token_response = requests.post('${tokenUrl}', headers={\n`;
@@ -137,15 +135,11 @@ function generateCode() {
     pythonCode += `    })\n`;
     pythonCode += `    return token_response.json().get('access_token')\n\n`;
 
-    // Iniciar Keywords section no Robot Framework
-    robotCode += "\n*** Keywords ***\n";
-
-    // Iterar sobre todas as requisições
+    // Iniciar funções de requisição
     const requestForms = document.querySelectorAll('.requestForm');
     requestForms.forEach((form, index) => {
         const method = form.querySelector('.method').value;
         const url = form.querySelector('.url').value;
-        const expectedStatusCode = form.querySelector('.expectedStatusCode').value;
         const headers = Array.from(form.querySelectorAll('.headersContainer .header-field')).map(field => ({
             key: field.querySelector('input[name="headerKey"]').value,
             value: field.querySelector('input[name="headerValue"]').value
@@ -173,6 +167,28 @@ function generateCode() {
         }
         pythonCode += `)\n`;
         pythonCode += `    return response\n\n`;
+    });
+
+    // Atualizar área de texto com o código gerado
+    document.getElementById('generatedCode').value = pythonCode;
+}
+
+// Função para gerar o código Robot
+function generateRobotCode() {
+    let robotCode = "*** Settings ***\nLibrary    RequestsLibrary\n\n*** Test Cases ***\nValidar Status Code das Requisições\n";
+
+    // Iterar sobre todas as requisições e adicionar ao bloco de Test Cases
+    const requestForms = document.querySelectorAll('.requestForm');
+    requestForms.forEach((form, index) => {
+        robotCode += `    Chamar Requisicao ${index + 1}\n`;
+    });
+
+    // Iniciar Keywords section no Robot Framework
+    robotCode += "\n*** Keywords ***\n";
+
+    // Iterar sobre todas as requisições e adicionar ao bloco de Keywords
+    requestForms.forEach((form, index) => {
+        const expectedStatusCode = form.querySelector('.expectedStatusCode').value;
 
         // Adicionar a keyword ao bloco de Keywords
         robotCode += `Chamar Requisicao ${index + 1}\n`;
@@ -180,17 +196,18 @@ function generateCode() {
         robotCode += `    Should Be Equal As Numbers    \${response_${index + 1}.status_code}    ${expectedStatusCode}\n\n`;
     });
 
-    // Refatorar a seção de Test Cases para usar as keywords
-    requestForms.forEach((form, index) => {
-        robotCode += `    Chamar Requisicao ${index + 1}\n`;
-    });
-
     // Atualizar área de texto com o código gerado
-    document.getElementById('generatedCode').value = pythonCode;
     document.getElementById('generatedRobotCode').value = robotCode;
 }
 
+// Função para gerar ambos os códigos
+function generateCode() {
+    generatePythonCode();
+    generateRobotCode();
+}
 
+// Adicionar listener para o botão de geração
+document.getElementById('generateButton').addEventListener('click', generateCode);
 
 // Função para copiar o código Python para a área de transferência
 function copyPythonCode() {
@@ -206,12 +223,4 @@ function copyRobotCode() {
     code.select();
     document.execCommand('copy');
     alert('Código Robot copiado para a área de transferência!');
-}
-
-
-// Limpar os campos do Token
-function clearTokenFields() {
-    document.getElementById('tokenUrl').value = '';
-    document.querySelectorAll('#tokenHeadersContainer .header-field').forEach(field => field.remove());
-    document.querySelectorAll('#tokenBodyContainer .body-field').forEach(field => field.remove());
 }

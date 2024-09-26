@@ -8,21 +8,30 @@
         textarea {
             width: 100%;
             height: 150px;
+            resize: none; /* Impede o redimensionamento do textarea */
         }
         #generatedCode {
             height: 300px;
-            width: 500px;
+            width: 100%; /* Remove largura fixa */
         }
         #generatedRobotCode {
             height: 300px;
-            width: 500px;
+            width: 100%; /* Remove largura fixa */
         }
         .container {
             display: flex;
             justify-content: space-between;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px
         }
         .form-container {
             width: 48%;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 5px
         }
         .request-container {
             margin-bottom: 20px;
@@ -36,24 +45,13 @@
         button {
             margin-top: 10px;
         }
-        .code-containers {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
+        .codeContainer {
+            display: flex; /* Flex para as caixas de código */
+            justify-content: space-between;
+            margin-top: 20px;
         }
-
         .code-block {
-            width: 48%;
-        }
-
-        textarea {
-            width: 100%;
-            height: 200px;
-            resize: none;
-        }
-
-        button {
-            margin-top: 10px;
+            width: 48%; /* Ajusta a largura dos blocos de código */
         }
     </style>
 </head>
@@ -144,26 +142,24 @@
         </div>
     </div>
 
-    <button type="button" onclick="generateCode()">Gerar</button>
+    <button id="generateButton">Gerar Código</button>
     <br><br>
     <!-- Adicionar as duas caixas de texto lado a lado -->
-    <div class="code-containers">
+    <div class="codeContainer">
         <div class="code-block">
             <h2>Gerador de Código em Python</h2>
-            <textarea id="generatedCode" readonly></textarea>
+            <textarea id="generatedCode" rows="15" cols="80" readonly></textarea>
             <br><br>
             <button onclick="copyPythonCode()">Copiar Código Python</button>
         </div>
 
         <div class="code-block">
             <h2>Gerador de Código em Robot</h2>
-            <textarea id="generatedRobotCode" readonly></textarea>
+            <textarea id="generatedRobotCode" rows="15" cols="80" readonly></textarea>
             <br><br>
             <button onclick="copyRobotCode()">Copiar Código Robot</button>
         </div>
     </div>
-    
-
 
     <script src="script.js"></script>
 </body>
