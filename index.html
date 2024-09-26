@@ -11,6 +11,11 @@
         }
         #generatedCode {
             height: 300px;
+            width: 500px;
+        }
+        #generatedRobotCode {
+            height: 300px;
+            width: 500px;
         }
         .container {
             display: flex;
@@ -28,6 +33,25 @@
         .request-container h3 {
             margin-top: 0;
         }
+        button {
+            margin-top: 10px;
+        }
+        .code-containers {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        }
+
+        .code-block {
+            width: 48%;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            resize: none;
+        }
+
         button {
             margin-top: 10px;
         }
@@ -122,10 +146,24 @@
 
     <button type="button" onclick="generateCode()">Gerar</button>
     <br><br>
-    <h2>Código Gerado:</h2>
-    <textarea id="generatedCode" readonly></textarea>
-    <br><br>
-    <button onclick="copyCode()">Copiar</button>
+    <!-- Adicionar as duas caixas de texto lado a lado -->
+    <div class="code-containers">
+        <div class="code-block">
+            <h2>Gerador de Código em Python</h2>
+            <textarea id="generatedCode" readonly></textarea>
+            <br><br>
+            <button onclick="copyPythonCode()">Copiar Código Python</button>
+        </div>
+
+        <div class="code-block">
+            <h2>Gerador de Código em Robot</h2>
+            <textarea id="generatedRobotCode" readonly></textarea>
+            <br><br>
+            <button onclick="copyRobotCode()">Copiar Código Robot</button>
+        </div>
+    </div>
+    
+
 
     <script src="script.js"></script>
 </body>

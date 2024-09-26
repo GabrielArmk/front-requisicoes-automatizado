@@ -108,7 +108,7 @@ function removeRequest(button) {
     requestContainer.remove();
 }
 
-// Gerar o código Python com todas as requisições
+// Função para gerar o código Python e Robot
 function generateCode() {
     const tokenUrl = document.getElementById('tokenUrl').value;
     const tokenHeaders = Array.from(document.querySelectorAll('#tokenHeadersContainer .header-field')).map(field => ({
@@ -120,25 +120,32 @@ function generateCode() {
         value: field.querySelector('input[name="tokenBodyValue"]').value
     }));
 
-    let code = `import requests\n\n`;
+    // Resetar código gerado
+    let pythonCode = `import requests\n\n`;
+    let robotCode = "*** Settings ***\nLibrary    RequestsLibrary\n\n*** Test Cases ***\nValidar Status Code das Requisições\n";
 
-    // Função para obter o token
-    code += `def obter_token():\n`;
-    code += `    token_response = requests.post('${tokenUrl}', headers={\n`;
+    // Função para obter o token em Python
+    pythonCode += `def obter_token():\n`;
+    pythonCode += `    token_response = requests.post('${tokenUrl}', headers={\n`;
     tokenHeaders.forEach(header => {
-        code += `        '${header.key}': '${header.value}',\n`;
+        pythonCode += `        '${header.key}': '${header.value}',\n`;
     });
-    code += `    }, json={\n`;
+    pythonCode += `    }, json={\n`;
     tokenBody.forEach(field => {
-        code += `        '${field.key}': '${field.value}',\n`;
+        pythonCode += `        '${field.key}': '${field.value}',\n`;
     });
-    code += `    })\n`;
-    code += `    return token_response.json().get('access_token')\n\n`;
+    pythonCode += `    })\n`;
+    pythonCode += `    return token_response.json().get('access_token')\n\n`;
 
+    // Iniciar Keywords section no Robot Framework
+    robotCode += "\n*** Keywords ***\n";
+
+    // Iterar sobre todas as requisições
     const requestForms = document.querySelectorAll('.requestForm');
     requestForms.forEach((form, index) => {
         const method = form.querySelector('.method').value;
         const url = form.querySelector('.url').value;
+        const expectedStatusCode = form.querySelector('.expectedStatusCode').value;
         const headers = Array.from(form.querySelectorAll('.headersContainer .header-field')).map(field => ({
             key: field.querySelector('input[name="headerKey"]').value,
             value: field.querySelector('input[name="headerValue"]').value
@@ -148,37 +155,59 @@ function generateCode() {
             value: field.querySelector('input[name="bodyValue"]').value
         }));
 
-        // Criar uma função para cada requisição
-        code += `def requisicao${index + 1}():\n`;
-        code += `    token = obter_token()\n`;
-        code += `    response = requests.${method.toLowerCase()}('${url}', headers={\n`;
+        // Função Python para a requisição
+        pythonCode += `def requisicao${index + 1}():\n`;
+        pythonCode += `    token = obter_token()\n`;
+        pythonCode += `    response = requests.${method.toLowerCase()}('${url}', headers={\n`;
         headers.forEach(header => {
-            code += `        '${header.key}': '${header.value}',\n`;
+            pythonCode += `        '${header.key}': '${header.value}',\n`;
         });
-        code += `        'Authorization': f'Bearer {token}'\n`;
-        code += `    }`;
+        pythonCode += `        'Authorization': f'Bearer {token}'\n`;
+        pythonCode += `    }`;
         if (method === 'POST') {
-            code += `, json={\n`;
+            pythonCode += `, json={\n`;
             body.forEach(field => {
-                code += `        '${field.key}': '${field.value}',\n`;
+                pythonCode += `        '${field.key}': '${field.value}',\n`;
             });
-            code += `    }`;
+            pythonCode += `    }`;
         }
-        code += `)\n`;
-        code += `    print(response.json())\n\n`;
+        pythonCode += `)\n`;
+        pythonCode += `    return response\n\n`;
+
+        // Adicionar a keyword ao bloco de Keywords
+        robotCode += `Chamar Requisicao ${index + 1}\n`;
+        robotCode += `    \${response_${index + 1}} =    requisicao${index + 1}\n`;
+        robotCode += `    Should Be Equal As Numbers    \${response_${index + 1}.status_code}    ${expectedStatusCode}\n\n`;
     });
 
-    document.getElementById('generatedCode').value = code;
+    // Refatorar a seção de Test Cases para usar as keywords
+    requestForms.forEach((form, index) => {
+        robotCode += `    Chamar Requisicao ${index + 1}\n`;
+    });
+
+    // Atualizar área de texto com o código gerado
+    document.getElementById('generatedCode').value = pythonCode;
+    document.getElementById('generatedRobotCode').value = robotCode;
 }
 
 
-// Copiar o código gerado para a área de transferência
-function copyCode() {
+
+// Função para copiar o código Python para a área de transferência
+function copyPythonCode() {
     const code = document.getElementById('generatedCode');
     code.select();
     document.execCommand('copy');
-    alert('Código copiado para a área de transferência!');
+    alert('Código Python copiado para a área de transferência!');
 }
+
+// Função para copiar o código Robot para a área de transferência
+function copyRobotCode() {
+    const code = document.getElementById('generatedRobotCode');
+    code.select();
+    document.execCommand('copy');
+    alert('Código Robot copiado para a área de transferência!');
+}
+
 
 // Limpar os campos do Token
 function clearTokenFields() {
